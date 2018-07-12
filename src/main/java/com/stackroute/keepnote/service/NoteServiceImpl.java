@@ -1,10 +1,23 @@
 package com.stackroute.keepnote.service;
 
 import java.util.List;
+
+import org.hibernate.HibernateException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.stackroute.keepnote.dao.CategoryDAO;
+import com.stackroute.keepnote.dao.NoteDAO;
+import com.stackroute.keepnote.dao.ReminderDAO;
+import com.stackroute.keepnote.dao.UserDAO;
 import com.stackroute.keepnote.exception.CategoryNotFoundException;
 import com.stackroute.keepnote.exception.NoteNotFoundException;
 import com.stackroute.keepnote.exception.ReminderNotFoundException;
+import com.stackroute.keepnote.exception.UserNotFoundException;
+import com.stackroute.keepnote.model.Category;
 import com.stackroute.keepnote.model.Note;
+import com.stackroute.keepnote.model.Reminder;
+import com.stackroute.keepnote.model.User;
 
 /*
 * Service classes are used here to implement additional business logic/validation 
@@ -15,6 +28,7 @@ import com.stackroute.keepnote.model.Note;
 * better. Additionally, tool support and additional behavior might rely on it in the 
 * future.
 * */
+@Service
 public class NoteServiceImpl implements NoteService {
 
 	/*
@@ -23,19 +37,49 @@ public class NoteServiceImpl implements NoteService {
 	 * object using the new keyword.
 	 */
 
-	/*
-	 * This method should be used to save a new note.
-	 */
-
+	@Autowired
+	  CategoryDAO categoryDAO;
+	@Autowired
+	  NoteDAO noteDAO;
+	@Autowired
+	  ReminderDAO reminderDAO;
+//	    @Autowired
+//		public NoteServiceImpl( CategoryDAO categoryDAO,NoteDAO noteDAO,ReminderDAO reminderDAO) {
+//	    	  this.noteDAO=noteDAO;
+//			  this.categoryDAO=categoryDAO;
+//			  this.reminderDAO=reminderDAO;
+//		}
+		/*
+		 * This method should be used to save a new note.
+		 */
 	public boolean createNote(Note note) throws ReminderNotFoundException, CategoryNotFoundException {
-		return false;
+		
+			 Reminder reminder=note.getReminder();
+			 Category category=note.getCategory();
+			 if(reminder!=null) {
+				 try {
+				 reminderDAO.getReminderById(reminder.getReminderId());
+				 }catch(ReminderNotFoundException r) {
+					 throw new ReminderNotFoundException("reminder is not there");
+				 }
+			 }
+			 if(category!=null) {
+				 try {
+					 categoryDAO.getCategoryById(category.getCategoryId());
+				 }catch(CategoryNotFoundException r) {
+					 throw new CategoryNotFoundException("category is not there");
+				 }
+			 }
+			return noteDAO.createNote(note);
+		 }
+		
 
-	}
+	
 
 	/* This method should be used to delete an existing note. */
 
 	public boolean deleteNote(int noteId) {
-		return false;
+		return noteDAO.deleteNote(noteId);
 
 	}
 	/*
@@ -43,7 +87,7 @@ public class NoteServiceImpl implements NoteService {
 	 */
 
 	public List<Note> getAllNotesByUserId(String userId) {
-		return null;
+		return noteDAO.getAllNotesByUserId(userId);
 
 	}
 
@@ -51,7 +95,13 @@ public class NoteServiceImpl implements NoteService {
 	 * This method should be used to get a note by noteId.
 	 */
 	public Note getNoteById(int noteId) throws NoteNotFoundException {
-		return null;
+		Note note=noteDAO.getNoteById(noteId);
+		if(note==null) {
+			 throw new NoteNotFoundException("UserNotFoundException.class");
+		}
+		else {
+			return note;
+		}
 
 	}
 
@@ -61,8 +111,31 @@ public class NoteServiceImpl implements NoteService {
 
 	public Note updateNote(Note note, int id)
 			throws ReminderNotFoundException, NoteNotFoundException, CategoryNotFoundException {
-		return note;
-
+		noteDAO.UpdateNote(note);
+		Note noteNew=noteDAO.getNoteById(id);
+		 Reminder reminder=note.getReminder();
+		 Category category=note.getCategory();
+		if(reminder!=null) {
+			 try {
+			 reminderDAO.getReminderById(reminder.getReminderId());
+			 }catch(ReminderNotFoundException r) {
+				 throw new ReminderNotFoundException("reminder is not there");
+			 }
+		 }
+		 if(category!=null) {
+			 try {
+				 categoryDAO.getCategoryById(category.getCategoryId());
+			 }catch(CategoryNotFoundException r) {
+				 throw new CategoryNotFoundException("category is not there");
+			 }
+		 }
+		if(noteNew==null) {
+			throw new NoteNotFoundException("java.lang.String");
+		}
+		else {
+			return note;
+		}
+		
 	}
 
 }

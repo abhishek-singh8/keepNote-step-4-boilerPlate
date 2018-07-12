@@ -1,8 +1,16 @@
 package com.stackroute.keepnote.service;
 
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.stackroute.keepnote.dao.CategoryDAO;
+import com.stackroute.keepnote.dao.ReminderDAO;
 import com.stackroute.keepnote.exception.CategoryNotFoundException;
+import com.stackroute.keepnote.exception.ReminderNotFoundException;
 import com.stackroute.keepnote.model.Category;
+import com.stackroute.keepnote.model.Reminder;
 
 /*
 * Service classes are used here to implement additional business logic/validation 
@@ -13,25 +21,30 @@ import com.stackroute.keepnote.model.Category;
 * better. Additionally, tool support and additional behavior might rely on it in the 
 * future.
 * */
-
+@Service
 public class CategoryServiceImpl implements CategoryService {
 	/*
 	 * Autowiring should be implemented for the CategoryDAO. (Use Constructor-based
 	 * autowiring) Please note that we should not create any object using the new
 	 * keyword.
 	 */
-
+	@Autowired
+	 CategoryDAO categoryDAO;
+	    
+//		public CategoryServiceImpl(CategoryDAO categoryDAO) {
+//			  this.categoryDAO=categoryDAO;
+//		}
 	/*
 	 * This method should be used to save a new category.
 	 */
 	public boolean createCategory(Category category) {
-		return false;
+		return categoryDAO.createCategory(category);
 
 	}
 
 	/* This method should be used to delete an existing category. */
 	public boolean deleteCategory(int categoryId) {
-		return false;
+		return categoryDAO.deleteCategory(categoryId);
 
 	}
 
@@ -40,7 +53,14 @@ public class CategoryServiceImpl implements CategoryService {
 	 */
 
 	public Category updateCategory(Category category, int id) throws CategoryNotFoundException {
-		return category;
+		categoryDAO.updateCategory(category);
+		Category categoryNew=categoryDAO.getCategoryById(id);
+		if(categoryNew==null) {
+			throw new CategoryNotFoundException("CategoryNotFoundException.class");
+		}
+		else {
+			return category;
+		}
 
 	}
 
@@ -48,7 +68,13 @@ public class CategoryServiceImpl implements CategoryService {
 	 * This method should be used to get a category by categoryId.
 	 */
 	public Category getCategoryById(int categoryId) throws CategoryNotFoundException {
-		return null;
+		Category category=categoryDAO.getCategoryById(categoryId);
+		if(category==null) {
+			 throw new CategoryNotFoundException("CategoryNotFoundException.class");
+		}
+		else {
+			return category;
+		}
 
 	}
 
@@ -57,8 +83,7 @@ public class CategoryServiceImpl implements CategoryService {
 	 */
 
 	public List<Category> getAllCategoryByUserId(String userId) {
-		return null;
-
+		return categoryDAO.getAllCategoryByUserId(userId);
 	}
 
 }

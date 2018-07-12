@@ -1,8 +1,14 @@
 package com.stackroute.keepnote.dao;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
 import com.stackroute.keepnote.exception.UserNotFoundException;
 import com.stackroute.keepnote.model.User;
+import org.springframework.transaction.annotation.Transactional;
+
 
 /*
  * This class is implementing the UserDAO interface. This class has to be annotated with 
@@ -13,6 +19,8 @@ import com.stackroute.keepnote.model.User;
  * 					transaction. The database transaction happens inside the scope of a persistence 
  * 					context.  
  * */
+@Repository
+@Transactional
 public class UserDaoImpl implements UserDAO {
 
 	/*
@@ -20,17 +28,31 @@ public class UserDaoImpl implements UserDAO {
 	 * constructor-based autowiring.
 	 */
 
+    SessionFactory sessionFactory;
+	@Autowired
 	public UserDaoImpl(SessionFactory sessionFactory) {
-
+		  this.sessionFactory=sessionFactory;
 	}
 
+	
+
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+	
 	/*
 	 * Create a new user
 	 */
 
 	public boolean registerUser(User user) {
-
-		return false;
+		Session session=sessionFactory.getCurrentSession();
+		session.save(user);
+		session.flush();
+		return true;
 	}
 
 	/*
@@ -39,7 +61,16 @@ public class UserDaoImpl implements UserDAO {
 
 	public boolean updateUser(User user) {
 
-		return false;
+		if(getUserById(user.getUserId())==null) {
+			return false;
+		} else {
+			sessionFactory.getCurrentSession().clear();
+		
+			sessionFactory.getCurrentSession().update(user);
+			sessionFactory.getCurrentSession().flush();;
+
+			return true;
+		}
 
 	}
 
@@ -48,7 +79,10 @@ public class UserDaoImpl implements UserDAO {
 	 */
 	public User getUserById(String UserId) {
 
-		return null;
+		Session session=sessionFactory.getCurrentSession();
+		User user = (User)session.get(User.class, UserId);
+		session.flush();
+		return user;
 	}
 
 	/*
@@ -56,7 +90,16 @@ public class UserDaoImpl implements UserDAO {
 	 */
 
 	public boolean validateUser(String userId, String password) throws UserNotFoundException {
-		return false;
+		User user = getUserById(userId);
+		if(user==null) {
+			throw new UserNotFoundException("UserNotFoundException.class");
+		}
+		else {
+			if(!user.getUserPassword().equals(password)) {
+				return false;
+			}
+		}
+		return true;
 
 	}
 
@@ -64,7 +107,14 @@ public class UserDaoImpl implements UserDAO {
 	 * Remove an existing user
 	 */
 	public boolean deleteUser(String userId) {
-		return false;
+		if(getUserById(userId)==null) {
+			return false;
+		} else {
+			Session session=sessionFactory.getCurrentSession();
+			session.delete(getUserById(userId));
+			session.flush();
+			return true;
+		}
 
 	}
 
